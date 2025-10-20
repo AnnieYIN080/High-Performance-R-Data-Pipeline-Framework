@@ -4,6 +4,12 @@ This repository provides a comprehensive R script to benchmark the performance o
 
 The code is heavily inspired by advanced R big data practices and leverages modern, high-performance tools.
 
+## Reference
+
+This project is a practical implementation and performance benchmark study based on the concepts detailed in the Chinese article:
+**> [知乎专栏: R语言大数据分析：借助DuckDB加速dplyr和data.table](https://zhuanlan.zhihu.com/p/24671904444)**
+
+
 ## Core Objective
 
 To calculate the percentage of "shared trips" (trips with `passenger_count > 1`) in the NYC Taxi dataset over time (2012-2021) and **measure the execution time** of the same query using different backends:
