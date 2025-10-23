@@ -1,62 +1,49 @@
-# R Big Data Query Benchmark: Arrow vs. DuckDB Performance
+# R Data Workflow & Query Comparison: Arrow, Polars, DuckDB, Duckplyr  
 
-This repository provides a comprehensive R script to benchmark the performance of various data processing engines when executing common analytical queries on large, partitioned Parquet datasets.
+This repository provides a comprehensive R script (`data_analysis_workflow.R`) demonstrating a robust data preparation, conversion, and comparative analysis workflow using modern, high‑performance R packages. The project illustrates how to efficiently process, query, and visualize large datasets through multiple analytical engines — all within R.
 
-The code is heavily inspired by advanced R big data practices and leverages modern, high-performance tools.
+##  Core Objectives
 
-## Reference
+### Workflow Demonstration
+Illustrate an end‑to‑end data pipeline in R:  
+**CSV I/O → Parquet Conversion → Comparative Exploratory Data Analysis (EDA)**
 
-This project is a practical implementation and performance benchmark study based on the concepts detailed in the Chinese article:
-**> [知乎专栏: R语言大数据分析：借助DuckDB加速dplyr和data.table](https://zhuanlan.zhihu.com/p/24671904444)**
+### Engine Comparison
+Benchmark and visualize analytical results derived from the same dataset (California Housing) using four distinct high‑performance approaches:
 
+- **Apache Arrow:** Zero‑copy I/O and rapid dplyr‑based analytics over Parquet.  
+- **Reticulate + Polars:** Rust‑based, multi‑threaded DataFrame operations via Python interoperability.  
+- **DuckDB SQL:** Embedded OLAP engine enabling high‑speed SQL queries directly on CSV or Parquet.  
+- **Duckplyr:** dplyr syntax accelerated through transparent delegation to the DuckDB engine.  
 
-## Core Objective
+>  **Applied Case Study: E‑Commerce Analytics:**
+> 
+> The **E‑commerce Sales Performance Benchmark** analyzes partitioned sales data by `transaction_year` and `transaction_month`, computing KPIs such as:
+> - Percentage of high‑value orders (> $500) per year  
+> - Total transaction volume per partition  
+> - Aggregated metrics for order distribution visualization
+---
 
-To calculate the percentage of "shared trips" (trips with `passenger_count > 1`) in the NYC Taxi dataset over time (2012-2021) and **measure the execution time** of the same query using different backends:
+##  Technical Stack
 
-1.  **DuckDB** (via `dbplyr` as an external table).
-2.  **Duckplyr** (using the `duckplyr` library for accelerated `dplyr`).
-3.  **Apache Arrow** (using Arrow's native compute engine).
+| Tool | Role | Why It's Used | Example E‑commerce Use Case |
+|------|------|----------------|------------------------------|
+| **Arrow** | Dataset Management & I/O | Zero‑copy, in‑memory columnar storage for efficient Parquet/CSV operations. | Handling massive transaction logs or clickstream data with minimal memory overhead. |
+| **DuckDB** | High‑Performance Database | Embedded analytical engine supporting SQL on local files. | Running product revenue aggregation or cohort analysis directly on CSV exports. |
+| **Duckplyr** | Accelerated dplyr Syntax | Offloads R dplyr workflows to DuckDB for speedups. | Quickly filtering, grouping, and summarizing large customer datasets without SQL. |
+| **Reticulate + Polars** | Multi‑threaded DataFrame Ops | Integrates Rust‑based Polars for fast in‑memory computation. | Computing KPIs like AOV (Average Order Value) or customer lifetime metrics in parallel. |
+| **Tidyverse (ggplot2)** | Visualization | Clean, high‑quality static and interactive plots. | Visual dashboards summarizing sales volumes, price distribution, or geolocation insights. |
 
-## Technical Stack
+---
 
-| Tool | Role | Why It's Used |
-| :--- | :--- | :--- |
-| **Arrow** | Dataset Management & I/O | Enables reading and handling massive, partitioned Parquet files efficiently without loading them entirely into R's memory. |
-| **DuckDB** | High-Performance Database | An embedded analytical database engine optimized for fast query execution on column-oriented formats (like Parquet). |
-| **`duckplyr`** | Accelerated `dplyr` Syntax | Accelerates standard `dplyr` operations by transparently offloading the computation to the DuckDB engine. |
-| **`tictoc`** | Benchmarking | Provides accurate measurement of the query execution time for direct comparison. |
+##  Prerequisites and Installation
 
-## Prerequisites
+The project requires both **R** and a minimal **Python** environment (for Polars via Reticulate).
 
-To run the analysis script, you need to install the following R packages:
-
-`install.packages(c("tidyverse", "tictoc", "arrow", "duckdb", "duckplyr"))`
-
-1. DuckDB External Table Query
+### R Setup
 ```
-con = dbConnect(duckdb(), dbdir = "nyc.duckdb")
-nyc_db = tbl(con, "read_parquet('data/nyc-taxi/*/*/*.parquet', hive_partitioning = true)")
-
-tic("DuckDB (External Table)") 
-analysis_result_duckdb = nyc_db |>
-  summarise(...) |>
-  collect() 
-toc() # Measures SQL execution time
-```
-
-2. Duckplyr Accelerated Query
-```
-nyc_duckplyr = read_parquet_duckdb("data/nyc-taxi/*/*/*.parquet") 
-tic("Duckplyr (Accelerated dplyr)")
-# ... (standard dplyr pipe execution) ...
-toc()
+install.packages(c("Rcpp", "BH", "DBI"), dependencies = TRUE)
+install.packages(c("arrow", "duckdb", "duckplyr", "tidyverse", "reticulate", "readr"), dependencies = TRUE)
+reticulate::py_install(packages = c("polars", "s3fs", "fsspec"), pip = TRUE)
 ```
 
-3. Arrow Native Compute
-```
-nyc_arrow = open_dataset("data/nyc-taxi") 
-tic("Arrow (Native Engine)")
-# ... (standard dplyr pipe execution) ...
-toc()
-```
