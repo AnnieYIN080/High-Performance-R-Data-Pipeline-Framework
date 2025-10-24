@@ -65,51 +65,44 @@ print(plot_arrow)
 
 
 # ====================================================================
-# --- PART B: POLARS WORKFLOW (VIA RETICULATE) ---
+# --- PART B: POLARS WORKFLOW ---
 # ====================================================================
 
 message("\n--- Running Polars Workflow (via Reticulate) ---")
+library("polars")
 
-# 1. Install and import Python Polars, plus necessary S3 libraries
-reticulate::py_install(packages = c("polars", "s3fs", "fsspec"), pip = TRUE)
-pl <- import("polars")
-# Optional: Setup SageMaker session (for specific AWS environments)
-# reticulate::py_install("sagemaker")
-# sagemaker <- import("sagemaker")
-# session <- sagemaker$Session
+# Placeholder for CSV path
+csv_path <- "/path/folder/file.csv"
 
-# Placeholder for an S3 CSV path
-s3_csv_path <- "s3://path/folder/file.csv"
-
-# Read CSV from S3 (Requires s3fs/fsspec setup in the Python environment)
-# NOTE: This line will fail if the S3 path is not valid or S3 credentials are not configured.
-# df <- pl$read_csv(s3_csv_path) 
+# Read CSV
+df <- pl$read_csv(csv_path)
+# df <- pl$scan_csv(csv_path)    # To save into lazy frames
 
 # --- Analysis (Demonstration using the Polars API) ---
 
-# Since S3 read might fail, demonstrating Polars API assuming 'df' is available:
-# df$dim()
-# df$schema
-# df$describe()
+df$dim()
+df$schema
+df$describe()
 
 # Custom aggregations
-# df_sales_summary <- df$select(
-#   pl$col("sales")$sum()$alias("Total_Sales"),
-#   pl$col("sales")$mean()$alias("Average_Sales"),
-#   pl$col("sales")$median()$alias("Median_Sales")
-# )
-# print(df_sales_summary)
+df_sales_summary <- df$select(
+  pl$col("sales")$sum()$alias("Total_Sales"),
+  pl$col("sales")$mean()$alias("Average_Sales"),
+  pl$col("sales")$median()$alias("Median_Sales")
+)
+print(df_sales_summary)
 
 # Grouped aggregations
-# df_grouped_summary <- df$group_by("category")$agg(
-#   pl$col("sales")$mean()$alias("Avg_Category_Sales"),
-#   pl$col("sales")$max()$alias("Max_Category_Sales")
-# )
-# print(df_grouped_summary)
+df_grouped_summary <- df$group_by("category")$agg(
+  pl$col("sales")$mean()$alias("Avg_Category_Sales"),
+  pl$col("sales")$max()$alias("Max_Category_Sales")
+)
+print(df_grouped_summary)
 
 # Convert Polars DataFrame to R tibble for ggplot2 (if df was read successfully)
-# df_r_tibble <- df$collect()$to_r()
-# print(head(df_r_tibble))
+df_r_tibble <- df$to_r()
+print(head(df_r_tibble))
+
 # df_r_tibble %>% ggplot(aes(x=..., y=...)) + ...
 
 
